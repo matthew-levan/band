@@ -10,7 +10,13 @@
 ::  checkout so we can associate the customer with the stripe 
 ::  payment intent id we get back from the post to 
 ::  /v1/checkout/sessions
-+$  state-0  [%0 =api-key local-url=url customers=(map @ @t) last-customer=@]
++$  state-0  
+  $:  %0 
+      =api-key
+      customers=(map @ @t)
+      last-customer=@
+      planet-invites=(list @t)
+  ==
 ::
 ::  boilerplate
 ::
@@ -61,6 +67,10 @@
     ?+    mar
       (on-poke:def [mar vaz])
     ::
+        %noun
+      =/  planet-invites  !<  (list @t)  vaz
+      [~ this(planet-invites planet-invites)]
+    ::
         %handle-http-request
       =/  req  !<  (pair @ta inbound-request:eyre)  vaz
       ~&  [mar req]
@@ -92,16 +102,18 @@
       ?:  =(url '/cancel')
         =/  frnt  
           %-  as-octs:mimes:html
-          '<!DOCTYPE html><html><head><title>Rubber Band DAO</title><link rel="stylesheet" href="style.css"></head><body><section><div class="product"><img src="http://www.staples-3p.com/s7/is/image/Staples/s0709582_sc7?$splssku$" alt="An ordinary rubber band."><div class="description"><h3>You must pay before you enjoy rubber band!</h3></div></div></section></body></html>'
+          '<!DOCTYPE html><html><head><title>%band</title></head><center><body><section><div class="product"><img src="http://www.staples-3p.com/s7/is/image/Staples/s0709582_sc7?$splssku$" alt="An ordinary rubber band."><div class="description"><h1 style="color:red">No pay? :(</h1><h1>Enjoy rubber band!</h1></div></div></section></body></center></html>'
         :_  this
         :~  [%give %fact [/http-response/[p.req]]~ %http-response-header !>([200 ~])]
             [%give %fact [/http-response/[p.req]]~ %http-response-data !>(`frnt)]
             [%give %kick [/http-response/[p.req]]~ ~]
         ==
       ?.  =(url.request.q.req '/band')  !!
+      =/  left  (scow %ud (lent planet-invites.this))
       =/  frnt  
         %-  as-octs:mimes:html
-        '<!DOCTYPE html><html><head><title>Rubber Band DAO</title><link rel="stylesheet" href="style.css"></head><body><section><div class="product"><img src="http://www.staples-3p.com/s7/is/image/Staples/s0709582_sc7?$splssku$" alt="An ordinary rubber band."><div class="description"><h3>Rubber Band</h3><h5>$20.00</h5></div></div><form action="/create-checkout-session" method="POST"><button type="submit" id="checkout-button">Buy now</button></form></section></body></html>'
+        %-  crip
+        "<!DOCTYPE html><html><head><title>%band</title><style>.blink\{animation:blink-animation 1s steps(5,start) infinite;-webkit-animation:blink-animation 1s steps(5,start) infinite}@keyframes blink-animation\{to\{visibility:hidden}}@-webkit-keyframes blink-animation\{to\{visibility:hidden}}</style></head><body><center><section><div class='product'><img src='https://i.imgur.com/H3cdoh4.jpeg' width='500' alt='COMBO PACK'><div class='description'><marquee><h1 style='color:#00f'>LIMITED TIME!!! ONLY {left} LEFT!!!</h1></marquee><p style='color:grey'>Available now until the end of Volcano Summit</p><h1>Limited Edition Galaxy Brain Bucket Hat</h1><h1>PLUS</h1><h1>FREE L2 PLANET</h1><span class='blink'><h3 style='color:red'>YOURS NOW FOR ONLY $64.00</h3></span></div></div><form action='/create-checkout-session' method='POST'><button type='submit' id='checkout-button'>Buy Now</button></form></section></center></body></html>"
       :_  this
       :~  [%give %fact [/http-response/[p.req]]~ %http-response-header !>([200 ~])]
           [%give %fact [/http-response/[p.req]]~ %http-response-data !>(`frnt)]
@@ -186,10 +198,13 @@
             [%give %fact [/http-response/[&2.wir]]~ %http-response-data !>(~)]
             [%give %kick [/http-response/[&2.wir]]~ ~]
         ==
+      ?~  planet-invites  !!
+      =/  planet-invite  (trip i.planet-invites)
       =/  frnt  
         %-  as-octs:mimes:html
-        '<!DOCTYPE html><html><head><title>Rubber Band DAO</title><link rel="stylesheet" href="style.css"></head><body><section><div class="product"><img src="http://www.staples-3p.com/s7/is/image/Staples/s0709582_sc7?$splssku$" alt="An ordinary rubber band."><div class="description"><h3>Congratulations! Enjoy your rubber band.</h3></div></div></section></body></html>'
-      :_  this
+        %-  crip
+        "<!DOCTYPE html><html><head><title>%band</title></head><body><center><section><div class='product'><img src='https://i.imgur.com/H3cdoh4.jpg' width='500' alt='Based Combo Pack'><div class='description'><h1>Great Success!</h1><a href='{planet-invite}'><h3>YOUR PLANET</h3></a><h3 style='color:red'>WARNING: DO NOT REFRESH WITHOUT TAKING YOUR PLANET!!!</h3><h4>Your hat will be delivered via email (correspondence)</h4></div></div></section></center></body></html>"
+      :_  this(planet-invites t.planet-invites)
       :~  [%give %fact [/http-response/[&2.wir]]~ %http-response-header !>([200 ~])]
           [%give %fact [/http-response/[&2.wir]]~ %http-response-data !>(`frnt)]
           [%give %kick [/http-response/[&2.wir]]~ ~]

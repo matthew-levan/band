@@ -5,5 +5,5 @@
     version+[0 0 1]
     website+'https://urbit.org/'
     license+'MIT'
-    site+/apps/band
+    site+/band
 ==

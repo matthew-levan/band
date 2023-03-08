@@ -1,5 +1,5 @@
 /-  *band
-/+  verb, dbug, default-agent
+/+  verb, dbug, default-agent, product
 ::
 |%
 ::
@@ -105,10 +105,33 @@
         ==  ::  cards
       ?.  =(url.request.q.req '/band')  !!
       =/  left  (scow %ud (lent planet-invites.this))
+      =/  products  (list product)
       =/  frnt  
         %-  as-octs:mimes:html
         %-  crip
-            "<!DOCTYPE html><html><head><title>%band</title><style>.blink\{animation:blink-animation 1s steps(5,start) infinite;-webkit-animation:blink-animation 1s steps(5,start) infinite}@keyframes blink-animation\{to\{visibility:hidden}}@-webkit-keyframes blink-animation\{to\{visibility:hidden}}</style></head><body><center><section><div class='product'><img src='https://i.imgur.com/H3cdoh4.jpeg' width='500' alt='COMBO PACK'><div class='description'><marquee><h1 style='color:#00f'>LIMITED TIME!!! ONLY {left} LEFT!!!</h1></marquee><p style='color:grey'>Available now until the end of Volcano Summit</p><h1>Limited Edition Galaxy Brain Bucket Hat</h1><h1>PLUS</h1><h1>FREE L2 PLANET</h1><span class='blink'><h3 style='color:red'>YOURS NOW FOR ONLY $64.00</h3></span></div></div><form action='/create-checkout-session' method='POST'><button type='submit' id='checkout-button'>Buy Now</button></form></section></center></body></html>"
+        %-  en-xml:html
+          ;html
+            ;head
+              ;title: %band
+              ;style: ".blink\{animation:blink-animation 1s steps(5,start) infinite;-webkit-animation:blink-animation 1s steps(5,start) infinite}@keyframes blink-animation\{to\{visibility:hidden}}@-webkit-keyframes blink-animation\{to\{visibility:hidden}}"
+            ==
+            ;body
+              ;center
+                ;section
+                  ;div(class "product")
+                    ;img@"https://nyc3.digitaloceanspaces.com/mastyr-bottec/mastyr-bottec/2023.3.06..15.15.38-all-over-print-reversible-bucket-hat-white-front-outside-64050afb5a4ed.jpg"(alt "Limited Edition Galaxy Brain Bucket Hat", width "350");
+                    ;div(class "description")
+                      ;h3(style "color: red;"): "YOURS NOW FOR ONLY $64.00"
+                    ==
+                    ;form(action "/create-checkout-session", method "POST")
+                      ;button(type "submit", id "checkout-button"): "Buy Now"
+                    ==
+                  ==
+                ==
+              ==
+            ==
+          ==
+::
       :_  this
       :~  [%give %fact [/http-response/[p.req]]~ %http-response-header !>([200 ~])]
           [%give %fact [/http-response/[p.req]]~ %http-response-data !>(`frnt)]
@@ -191,7 +214,27 @@
     =/  frnt  
       %-  as-octs:mimes:html
       %-  crip
-          "<!DOCTYPE html><html><head><title>%band</title></head><body><center><section><div class='product'><img src='https://i.imgur.com/H3cdoh4.jpg' width='500' alt='Based Combo Pack'><div class='description'><h1>Great Success!</h1><a href='{planet-invite}'><h3>YOUR PLANET</h3></a><h3 style='color:red'>WARNING: DO NOT REFRESH WITHOUT TAKING YOUR PLANET!!!</h3><h4>Your hat will be delivered via email (correspondence)</h4></div></div></section></center></body></html>"
+      %-  en-xml:html
+        ;html
+          ;head
+            ;title: %band
+          ==
+          ;body
+            ;center
+              ;section
+                ;div.product
+                  ;img@"https://i.imgur.com/H3cdoh4.jpg"(width "500", alt "Based Combo Pack");
+                  ;div.description
+                    ;h1: Great Success!
+                    ;a/"{planet-invite}": YOUR PLANET
+                    ;h3(style "color: red;"): WARNING DO NOT REFRESH WITHOUT TAKING YOUR PLANET
+                    ;h4: Your hat will be delivered via email (correspondence)
+                  ==
+                ==
+              ==
+            ==
+          ==
+        ==
     :_  this(planet-invites t.planet-invites)
     :~  [%give %fact [/http-response/[&2.wir]]~ %http-response-header !>([200 ~])]
         [%give %fact [/http-response/[&2.wir]]~ %http-response-data !>(`frnt)]

@@ -4,7 +4,7 @@
 ::
 |%
 +$  api-key         @t                                  ::  stripe api key
-+$  price           @ud                                 ::  price in cents
++$  price-id        @t                                  ::  stripe product's price_id
 +$  customer        @
 +$  paid            ?                                   ::  payment status
 +$  customers       (map customer paid)

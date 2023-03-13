@@ -27,7 +27,6 @@
   ++  on-poke
     |=  [mar=mark vaz=vase]
     ^-  (quip card _this)
-    =^  cards  agent  (on-poke:ag mar vaz)
     :_  this
     ?+  mar  ~
     ::
@@ -35,32 +34,67 @@
       ^-  (list card)
       =/  req  !<((pair @ta inbound-request:eyre) vaz)
       =/  url  url.request.q.req
+      ~&  url
       =/  last-customer  '0'
       =/  customer-hash  (hmac-sha256t:hmac:crypto salt.this last-customer)
       =/  hash-length  (met 3 customer-hash)
-      :: ~
-      :: |^  use helper arms
-      ?+    method.request.q.req  ~
+      =/  app-length  (met 3 app)
+      ::  ~
+      ?+    method.request.q.req
+        =^  cards  agent  (on-poke:ag mar vaz)  cards
           %'GET'
-        ?:  =((cut 3 [0 8] url) '/success')
-          =/  req-hash  (cut 3 [9 (met 3 url)] url)
+        ?:  =(url (crip "/apps/{(trip app)}/_band/cancel"))
           =/  frnt
-            %-  as-octs:mimes:html
-            %-  crip
-                "<!DOCTYPE html><html><head><title>%band</title></head><body><center><section><div class='product'><img src='https://nyc3.digitaloceanspaces.com/mastyr-bottec/mastyr-bottec/2023.3.06..15.15.38-all-over-print-reversible-bucket-hat-white-front-outside-64050afb5a4ed.jpg' width='500' alt='Based Combo Pack'><div class='description'><h1>Great Success!</h1><h3>YOUR PLANET</h3><h3 style='color:red'>WARNING: DO NOT REFRESH WITHOUT TAKING YOUR PLANET!!!</h3><h4>Your hat will be delivered via email (correspondence)</h4></div></div></section></center></body></html>"
+          %-  as-octs:mimes:html
+          %-  crip
+          %-  en-xml:html
+          ;html
+            ;head
+              ;title: [app]
+            ==
+            ;body
+              ;center
+                ;h1: Sorry to see you go.
+              ==  ::  center
+            ==  ::  body
+          ==  ::  html
           :~  [%give %fact [/http-response/[p.req]]~ %http-response-header !>([200 ~])]
               [%give %fact [/http-response/[p.req]]~ %http-response-data !>(`frnt)]
               [%give %kick [/http-response/[p.req]]~ ~]
           ==  ::  cards
-        ~
+        ?:  =((cut 3 [0 (add app-length 20)] url) (crip "/apps/{(trip app)}/_band/success"))
+          ~&  %.y
+          =/  req-hash  (cut 3 [9 (met 3 url)] url)
+          =/  frnt
+          %-  as-octs:mimes:html
+          %-  crip
+          %-  en-xml:html
+          ;html
+            ;head
+              ;title: [app]
+            ==  ::  head
+            ;body
+              ;center
+                ;h1: Success!
+              ==  ::  center
+            ==  ::  body
+          ==  ::  html
+          :~  [%give %fact [/http-response/[p.req]]~ %http-response-header !>([200 ~])]
+              [%give %fact [/http-response/[p.req]]~ %http-response-data !>(`frnt)]
+              [%give %kick [/http-response/[p.req]]~ ~]
+          ==  ::  cards
+        =^  cards  agent  (on-poke:ag mar vaz)  cards
       ::
           %'POST'
-        ?>  =(url '/checkout')
-        ~&  [%checkout req]
+        ?.  =(url (crip "/apps/{(trip app)}/_band/checkout"))
+          =^  cards  agent  (on-poke:ag mar vaz)  cards
         =/  customer-id  '1'  ::  adslkfj
+        =/  pref  "http://localhost/{(trip app)}/_band"
+        =/  succ  "{pref}/success/{(trip customer-id)}/{(trip customer-hash)}"
+        =/  cncl  "{pref}/cancel"
         ::  get the customer-id out of the hidden form input field
         :~  :*  %pass
-                /checkout/[p.req]/[last-customer]
+                /apps/[app]/'_band'/'checkout'/[p.req]/[customer-id]/[customer-hash]
                 %arvo
                 %i
                 %request
@@ -79,8 +113,8 @@
                     %-  zing
                     %+  join  "&"
                     ^-  (list tape)
-                    :~  "success_url=http://localhost/{(trip app)}/_band/success/{(trip customer-id)}/{(trip customer-hash)}"
-                        "cancel_url=http://localhost/{(trip app)}/_band/cancel"
+                    :~  "success_url={succ}"
+                        "cancel_url={cncl}"
                         "line_items[0][price]={(trip price-id)}"
                         "line_items[0][quantity]=1"
                         "mode=payment"
@@ -106,9 +140,9 @@
     =^  cards  agent  on-init:ag
     =.  cards  %+  weld  cards
     ^-  (list card)
-    :~  [%pass /bind-cancel %arvo %e %connect `/'apps'/[app]/'_band'/'cancel' app]
-        [%pass /bind-success %arvo %e %connect `/'apps'/[app]/'_band'/'success' app]
-        [%pass /bind-checkout %arvo %e %connect `/'apps'/[app]/'_band'/'checkout' app]
+    :~  [%pass /'apps'/[app]/'_band'/'bind-cancel' %arvo %e %connect `/'apps'/[app]/'_band'/'cancel' app]
+        [%pass /'apps'/[app]/'_band'/'bind-checkout' %arvo %e %connect `/'apps'/[app]/'_band'/'checkout' app]
+        [%pass /'apps'/[app]/'_band'/'bind-success' %arvo %e %connect `/'apps'/[app]/'_band'/'success' app]
     ==
     [cards this(salt eny.bowl)]
   ::
@@ -145,8 +179,26 @@
   ++  on-arvo
     |=  [wir=wire sig=sign-arvo]
     ^-  (quip card agent:gall)
-    =^  cards  agent  (on-arvo:ag wir sig)
-    [cards this]
+    :_  this
+    ?:  =(wir /'apps'/[app]/'_band'/'cancel')
+      ~
+    ?:  =(wir /'apps'/[app]/'_band'/'success')
+      ~
+    ?:  =(wir /'apps'/[app]/'_band'/'checkout')
+      ?>  ?=([%iris %http-response %finished * ~ *] sig)
+      =/  res=json  (need (de-json:html q.data.u.full-file.client-response.sig))
+      ?>  ?=(%o -.res)
+      =/  redirect-url  (~(got by p.res) %url)
+      ?>  ?=(%s -.redirect-url)
+      =/  =response-header:http
+        ^-  response-header:http
+        :-  303
+            ['Location' p.redirect-url]~
+      :~  [%give %fact [/http-response/[&2.wir]]~ %http-response-header !>(response-header)]
+          [%give %fact [/http-response/[&2.wir]]~ %http-response-data !>(~)]
+          [%give %kick [/http-response/[&2.wir]]~ ~]
+      ==
+    =^  cards  agent  (on-arvo:ag wir sig)  cards
   ::
   ++  on-fail
     |=  [=term =tang]

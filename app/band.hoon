@@ -40,7 +40,7 @@
 ++  on-init
   ^-  (quip card _this)
   :_  this
-  :~  [%pass /bind-band %arvo %e %connect `/'apps'/'band' %band]
+  :~  [%pass /bind-band %arvo %e %connect `/apps/band %band]
   ==
 ::
 ++  on-save
@@ -59,67 +59,46 @@
   ^-  (quip card _this)
   ?+    mar  (on-poke:def [mar vaz])
   ::
-      %noun
-    ::  TODO assert self
-    =/  planet-invites  !<  (list @t)  vaz
-    [~ this(planet-invites planet-invites)]
-  ::
       %handle-http-request
     =/  req  !<((pair @ta inbound-request:eyre) vaz)
     =/  url  url.request.q.req
     ?+    method.request.q.req  `this
-      ::
-      :: ?:  =(url '/cancel')
-      ::   =/  frnt  %-  as-octs:mimes:html
-      ::                 '<!DOCTYPE html><html><head><title>%band</title></head><center><body><section><div class="product"><img src="http://www.staples-3p.com/s7/is/image/Staples/s0709582_sc7?$splssku$" alt="An ordinary rubber band."><div class="description"><h1 style="color:red">No pay? :(</h1><h1>Enjoy rubber band!</h1></div></div></section></body></center></html>'
-      ::   :_  this
-      ::   :~  [%give %fact [/http-response/[p.req]]~ %http-response-header !>([200 ~])]
-      ::       [%give %fact [/http-response/[p.req]]~ %http-response-data !>(`frnt)]
-      ::       [%give %kick [/http-response/[p.req]]~ ~]
-      ::   ==  ::  cards
       %'GET'
-      ?.  =(url.request.q.req '/band')  !!
-      =/  left  (scow %ud (lent planet-invites.this))
-      =/  frnt  
-        %-  as-octs:mimes:html
-        %-  crip
-        %-  en-xml:html
-          ;html
-            ;head
-              ;title: %band
-              ;style: ".blink\{animation:blink-animation 1s steps(5,start) infinite;-webkit-animation:blink-animation 1s steps(5,start) infinite}@keyframes blink-animation\{to\{visibility:hidden}}@-webkit-keyframes blink-animation\{to\{visibility:hidden}}"
-            ==
-            ;body
-              ;center
-                ;section
-                  ;div(class "product")
-                    ;img@"https://i.imgur.com/H3cdoh4.jpeg"(width "350", alt "COMBO PACK");
-                    ;div(class "description")
-                      ;marquee
-                        ;h1(style "color: #00f;"): "LIMITED TIME!!! ONLY {left} LEFT!!!"
-                      ==  ::  marquee
-                      ;p(style "color: grey;"): "Available now until the end of Volcano Summit"
-                      ;h1: "Limited Edition Galaxy Brain Bucket Hat"
-                      ;h1: "PLUS"
-                      ;h1: "FREE L2 PLANET"
-                      ;span(class "blink")
-                        ;h3(style "color: red;"): "YOURS NOW FOR ONLY $64.00"
-                      ==  ::  span
-                    ==  ::  div description
-                    ;form(action "/checkout", method "POST")
-                      ;input(type "hidden", id "customer-id", name "customer-id", value (trip last-customer.this))
-                      ;button(type "submit", id "checkout-button"): "Buy Now"
-                    ==  ::  form
-                  ==  ::  div product
-                ==  ::  section
-              ==  ::  center
-            ==  ::  body
-          ==  ::  html
-        ==  ::  ???
-      :_  this
-      :~  [%give %fact [/http-response/[p.req]]~ %http-response-header !>([200 ~])]
-          [%give %fact [/http-response/[p.req]]~ %http-response-data !>(`frnt)]
-          [%give %kick [/http-response/[p.req]]~ ~]
+    ?.  =(url '/apps/band')  !!
+    =/  frnt  
+      %-  as-octs:mimes:html
+      %-  crip
+      %-  en-xml:html
+        ;html
+          ;head
+            ;title: %band
+          ==
+          ;body
+            ;center
+              ;section
+                ;div(class "product")
+                  ;img@"https://nyc3.digitaloceanspaces.com/mastyr-bottec/mastyr-bottec/2023.3.06..15.15.38-all-over-print-reversible-bucket-hat-white-front-outside-64050afb5a4ed.jpg"(width "350", alt "Bucket Hat");
+                  ;div(class "description")
+                    ;p(style "color: grey;"): Available now until the end of Volcano Summit
+                    ;h1: Galaxy Brain Bucket Hat
+                    ;span(class "blink")
+                      ;h1(style "color: green;"): $64.00
+                    ==  ::  span
+                  ==  ::  div description
+                  ;form(action "/apps/band/_band/checkout", method "POST")
+                    ;input(type "hidden", id "customer-id", name "customer-id", value (trip last-customer.this))
+                    ;button(type "submit", id "checkout-button"): Buy Now
+                  ==  ::  form
+                ==  ::  div product
+              ==  ::  section
+            ==  ::  center
+          ==  ::  body
+        ==  ::  html
+      ==  ::  ???
+    :_  this
+    :~  [%give %fact [/http-response/[p.req]]~ %http-response-header !>([200 ~])]
+        [%give %fact [/http-response/[p.req]]~ %http-response-data !>(`frnt)]
+        [%give %kick [/http-response/[p.req]]~ ~]
       ==  ::  cards
     ==  ::  method
   ==  ::  mark
@@ -134,22 +113,6 @@
   ?+    wir  (on-arvo:def wir sig)
       [%bind-band ~]
     [~ this]
-    ::
-    ::   [%create-checkout-session @ @ ~]  ::  /create-checkout-session/[+.req]
-    :: ?>  ?=([%iris %http-response %finished * ~ *] sig)
-    :: =/  res=json  (need (de-json:html q.data.u.full-file.client-response.sig))
-    :: ?>  ?=(%o -.res)
-    :: =/  redirect-url  (~(got by p.res) %url)
-    :: ?>  ?=(%s -.redirect-url)
-    :: =/  =response-header:http
-    ::   ^-  response-header:http
-    ::   :-  303
-    ::       ['Location' p.redirect-url]~
-    :: :_  this(customers (~(put by customers) (slav %ud &3.wir) %.n))
-    :: :~  [%give %fact [/http-response/[&2.wir]]~ %http-response-header !>(response-header)]
-    ::     [%give %fact [/http-response/[&2.wir]]~ %http-response-data !>(~)]
-    ::     [%give %kick [/http-response/[&2.wir]]~ ~]
-    :: ==  ::  cards
   ==  ::  wire
 ::
 ++  on-watch
